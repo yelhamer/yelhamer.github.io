@@ -6,7 +6,7 @@ order: 4
 
 Hello, I am Yacine Elhamer.
 
-And here, you can see what I have been up to recently.
+I am a Cyber Security student and enthusiast, and this is my personal blog wherein you can see what I have been up to recently.
 
 Online Profiles:
 
