@@ -373,6 +373,6 @@ In conclusion, this post has covered several aspects of detecting and reverse-en
 2. Special attention should be paid to the seccomp return values when reversing seccomp-BPF filters, since they essentially define the set of actions that the BPF program at hand can perform.
 3. Knowing the opcodes of seccomp-BPF programs, one can modify a process' embedded BPF filters to alter its behaviour. For example, place a _ret SECCOMP\_RET\_ALLOW_ at the start of the BPF filter, in case a piece of malware is prohibiting certain syscalls (possibly with specific arguments) from being made.
 
-If you have any Feedback or would like to reach out to me, feel free to do so on [Twitter](https://twitter.com/yelhamer).
+If you have any Feedback, or would like to reach out to me, feel free to do so on [Twitter](https://twitter.com/yelhamer).
 
 Thank you for your time :)
