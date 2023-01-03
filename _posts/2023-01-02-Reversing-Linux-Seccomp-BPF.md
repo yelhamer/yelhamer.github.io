@@ -19,7 +19,7 @@ Throughout this post, I aim to provide information which is essential to underst
 
 Seccomp (Secure Computing) is a Linux security feature which aims to restrict the type of syscalls being made by a process. Once a process configures its seccomp state, each subsequent syscall made by that process is verified by the seccomp faccility for whether it is allowed to run or not.
 
-It is often compared to the OpenBSD [pledge()]https://man.openbsd.org/pledge.2() syscall, in the sense that they both perform somewhat the same functionality. The exception to this comparison is that Linux' seccomp facility is more complex than *pledge()*, notably, because it provides more-tweakable testing conditions, as well as more performable actions than its FreeBSD counterpart.
+It is often compared to the OpenBSD [pledge()](https://man.openbsd.org/pledge.2) syscall, in the sense that they both perform somewhat the same functionality. The exception to this comparison is that Linux' seccomp facility is more complex than *pledge()*, notably, because it provides more-tweakable testing conditions, as well as more performable actions than its FreeBSD counterpart.
 
 A process can set up its seccomp facility by calling either the [seccomp()](https://man7.org/linux/man-pages/man2/seccomp.2.html) or the [prctl()](https://man7.org/linux/man-pages/man2/prctl.2.html) syscalls, and supplying the appropriate parameters with regards to each parameter; Among these paremeters are the desired _seccomp mode_ to be deployed, alongside other mode-dependant arguments.
 
@@ -187,7 +187,7 @@ _ELF metadata_
 Examining the symbols' section however reveals an morsel of interesting information, which is that the program has a dynamic reference to the **prctl()** syscall:
 
 ![syms-table](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/3.png)
-_Symbols Table (Functions Only)__
+_Symbols Table (Functions Only)_
 
 Aside from this, nothing seems out of the ordinary, which means that now it is time to start static analysis.
 
@@ -276,7 +276,7 @@ Some blocks of code have been redacted to illustrate the general structure of th
 
 In making sense of the previous assembly, one should bare in mind that the functionality of each the operands (specifically _src_ and _dst_ registers) depends heavily on the instruction being executed. For example, in the **ldw** instruction the first operand is the destination, wheras in the **stw** instruction it is the source; Additionally, some instructions ignore certain operands, such as **ldw** ignoring the _second_ operand, and **ldxw** ignoring the _first_ operand.
 
-This makes reversing the progrma slightly more difficult, and the capstone engine provides a more intuitive disassembly (as shown in the following figure); However, for some reason, capstone would fail to disassemble certain BPF instructions on my machine, notably the **stw** instruction; Therefore I will continue using the github script in this post, and will update it if I get around to solving the issue I am having the feature.
+This makes reversing the program slightly more difficult, and the capstone engine provides a more intuitive disassembly (as shown in the following figure); However, for some reason, capstone would fail to disassemble certain BPF instructions on my machine, notably the **stw** instruction; Therefore I will continue using the github script in this post, and will update it if I get around to solving the issue I am having the feature.
 
 ![capstone-disassm](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/9.png)
 _Disassembly according to capstone's python module_
