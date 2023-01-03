@@ -46,7 +46,7 @@ jobs:
           bundler-cache: true
 
       - name: Installing dependencies
-        run: bundle install && bundle lock --add-platform x86_x64-linux
+        run: bundle install
 
       - name: Build site
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
