@@ -1,5 +1,5 @@
 ---
-title: Dynamically Resolving Windows API Functions via the PEB\_LDR\_DATA struct
+title: Dynamically Resolving Windows API Functions via the PEB_LDR_DATA struct
 categories: [REVERSING, MALWARE, WINDOWS INTERNALS]
 tags: [reversing, malware, windows, shellcode, metasploit]
 ---
