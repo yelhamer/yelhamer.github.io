@@ -1,5 +1,8 @@
-Resolving Windows API Functions via the PEB_LDR_DATA Structure
-
+---
+title: Dynamically Resolving Windows API Functions via the PEB\_LDR\_DATA struct
+categories: [REVERSING, MALWARE, WINDOWS INTERNALS]
+tags: [reversing, malware, windows, shellcode, metasploit]
+---
 
 ## Introduction:
 
@@ -18,7 +21,7 @@ When windows loads a DLL module into a process’s virtual address space, it loa
 As a consequence, our approach can be summarized in the following main steps:
 
 1. Get the list of loaded modules from the PEB.
-2. Find the address of our target DLL from the PEB_LDR_DATA list.
+2. Find the address of our target DLL from the PEB\_LDR\_DATA list.
 3. Parse the module’s exports table to resolve the addresses we need.
 
 In the following sections, we’ll be going over the main tenets of these steps.
@@ -31,27 +34,27 @@ Both the PEB and the TEB were meant for internal use only by the operating syste
 
 Examining the contents of the TEB struct as per these websites, we can see that it contains a pointer to the parent process’s PEB block. Furthermore, Aldeid also tells us that the TEB is accessible using the FS segment register. See Figure 1 below.
 
-[fig-1](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image1.png)
+![fig-1](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image1.png)
 _Figure 1: Contents of the TEB structs per Aldeid_
 
 As a consequence, in order to access the PEB all we’d need to do is to read the DWORD at a 0x30 bytes offset from the FS segment register, and we would have the base pointer for the PEB struct. Keep in mind however that this is relevant for 32-bit systems only; on 64-bit the PEB reference is at a 0x60 bytes offset from the GS register instead.
 
-According to Aldeid, the PEB is composed of 66 fields that contain varying information about the process such as: a pointer to the heap, a pointer to KernelCallbackTable (suggested read: how lazarus used KernelCallbackTable poisoning for control flow hijacking), and most importantly in our case a pointer to the PEB_LDR_DATA struct which has information about the process’s loaded modules.
+According to Aldeid, the PEB is composed of 66 fields that contain varying information about the process such as: a pointer to the heap, a pointer to KernelCallbackTable (suggested read: how lazarus used KernelCallbackTable poisoning for control flow hijacking), and most importantly in our case a pointer to the PEB\_LDR\_DATA struct which has information about the process’s loaded modules.
 
-## Process-loaded modules (PEB_LDR_DATA):
+## Process-loaded modules (PEB\_LDR\_DATA):
 
-This struct can be obtained by dereferencing the DWORD at the offset 0xc of the PEB (on 32-bit systems). In addition to metadata, it contains references to 3 doubly-linked lists that hold information about the process’ loaded modules. Each element of these 3 lists  is a PEB_LDR_TABLE_ENTRY struct that corresponds to one of the loaded modules. The elements in these lists are the exact same, with the only difference between the lists being that they present the modules in different orders such as: Loading order, Memory placement order, and Initialization order.
+This struct can be obtained by dereferencing the DWORD at the offset 0xc of the PEB (on 32-bit systems). In addition to metadata, it contains references to 3 doubly-linked lists that hold information about the process’ loaded modules. Each element of these 3 lists  is a PEB\_LDR\_TABLE\_ENTRY struct that corresponds to one of the loaded modules. The elements in these lists are the exact same, with the only difference between the lists being that they present the modules in different orders such as: Loading order, Memory placement order, and Initialization order.
 
-The forward and backward pointers affiliated with each of the 3 lists are grouped together into a small struct named LIST_ENTRY, and are placed together at the start of each PEB_LDR_TABLE_ENTRY. Given a certain module, we can use the appropriate LIST_ENTRY to find the next and previous modules following any of the aforementioned orders.
+The forward and backward pointers affiliated with each of the 3 lists are grouped together into a small struct named LIST\_ENTRY, and are placed together at the start of each PEB\_LDR\_TABLE\_ENTRY. Given a certain module, we can use the appropriate LIST\_ENTRY to find the next and previous modules following any of the aforementioned orders.
 
-One nuance that’s worth mentioning is the pointers associated with each list do not necessarily point at the start of the PEB_LDR_TABLE_ENTRY structure. Instead, they point to the relevant LIST_ENTRY within that structure. For instance, the Flink member of the InMemoryOrderLinks LIST_ENTRY struct points 0x8 bytes into the next PEB_LDR_TABLE_ENTRY rather than at the start of it. For illustration of this, please refer to Figure 2.
+One nuance that’s worth mentioning is the pointers associated with each list do not necessarily point at the start of the PEB\_LDR\_TABLE\_ENTRY structure. Instead, they point to the relevant LIST\_ENTRY within that structure. For instance, the Flink member of the InMemoryOrderLinks LIST\_ENTRY struct points 0x8 bytes into the next PEB\_LDR\_TABLE\_ENTRY rather than at the start of it. For illustration of this, please refer to Figure 2.
 
-[fig-2](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image2.png)
+![fig-2](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image2.png)
 _Figure 2: Illustrative diagram of how the loaded-modules linked list works_
 
-This means that when resolving the offsets for fields in the PEB_LDR_TABLE_ENTRY structure, we must take into account which list we’re following. If it’s the InMemoryOrderLinks one, then we’d need to subtract 8 bytes from the computed offsets (granted that we’re looking for a field that comes after it).
+This means that when resolving the offsets for fields in the PEB\_LDR\_TABLE\_ENTRY structure, we must take into account which list we’re following. If it’s the InMemoryOrderLinks one, then we’d need to subtract 8 bytes from the computed offsets (granted that we’re looking for a field that comes after it).
 
-## LDR_DATA_TABLE_ENTRY:
+## LDR\_DATA\_TABLE\_ENTRY:
 
 With the linked list mechanisms out of the way, we can focus more on the other fields that are useful for our case. Aldeid’s definition of this struct is the following:
 
@@ -116,19 +119,19 @@ To go over the main points we’ve talked about thus far and highlight the impor
 
 Figure 3 below shows the code that fetches the first module the process loaded. The most important bits have been highlighted.
 
-[fig-3](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image3.png)
+![fig-3](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image3.png)
 _Figure 3: Shellcode Fetching the first process-loaded module_
 
 The first highlighted instruction copies the pointer at a 0x30 bytes offset from the vaddress contained in the FS register. As we’ve seen earlier, the FS register contains the vaddress of the TEB struct, while offset 0x30 contains a pointer to the PEB struct. Therefore, executing this instruction puts the vaddress of the PEB in the edx register.
 
-The instruction after that offsets 12 bytes into the PEB, which we know corresponds to the PEB_LDR_DATA struct which contains the heads of the 3 different lists of modules. As we can see from the instruction that follows this, the code is grabbing the pointer at a 0x14 offset from the start of the PEB_LDR_DATA; this corresponds to the InMemoryOrderModuleList member, therefore after this instruction executes edx will have the address of the first PEB_LDR_TABLE_ENTRY struct.
+The instruction after that offsets 12 bytes into the PEB, which we know corresponds to the PEB\_LDR\_DATA struct which contains the heads of the 3 different lists of modules. As we can see from the instruction that follows this, the code is grabbing the pointer at a 0x14 offset from the start of the PEB\_LDR\_DATA; this corresponds to the InMemoryOrderModuleList member, therefore after this instruction executes edx will have the address of the first PEB\_LDR\_TABLE\_ENTRY struct.
 
 Finally, the last two instructions grab the name’s buffer and buffer length respectively, which will later be used to search for the target DLL. Once found, the code executes the instructions depicted in Figure 4 below:
 
-[fig-4](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image4.png)
+![fig-4](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image4.png)
 _Figure 4: Shellcode Fetching The Exports Table_
 
-With the edx register still pointing to the module’s corresponding PEB_LDR_TABLE_ENTRY struct (the inner InMemoryOrderList field to be exact), our first highlighted instruction grabs the DllBase vaddress (offset 0x10) and saves it to edx. Then, 0x3c is added to that to fetch the offset of the PE header from the MZ header. Finally, the DWORD from offset 0x78 into the PE is copied into the ecx register, which corresponds to the offset of the exports table from the start of the DLL base image.
+With the edx register still pointing to the module’s corresponding PEB\_LDR\_TABLE\_ENTRY struct (the inner InMemoryOrderList field to be exact), our first highlighted instruction grabs the DllBase vaddress (offset 0x10) and saves it to edx. Then, 0x3c is added to that to fetch the offset of the PE header from the MZ header. Finally, the DWORD from offset 0x78 into the PE is copied into the ecx register, which corresponds to the offset of the exports table from the start of the DLL base image.
 
 After this, the malware will proceed into resolving the function addresses it needs, which leads us to the next portion of this blogpost.
 
@@ -136,7 +139,7 @@ After this, the malware will proceed into resolving the function addresses it ne
 
 Aldeid defines the structure of PE files’ exports table as seen in Figure 5 below.
 
-[fig-5](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image5.png)
+![fig-5](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image5.png)
 _Figure 5: Structure of PE files' exports table_
 
 Of these fields, the most important to us are the following:
@@ -149,7 +152,7 @@ The general algorithm for finding the vaddress of our target functions is pretty
 
 The assembly code needed to do this can be seen in Figure 6 below which shows how the previously discussed Metasploit file virus walks the exports table.
 
-[fig-6](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image6.png)
+![fig-6](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image6.png)
 _Figure 6: Shellcode that parses the exports table to find the target function_
 
 First, the green-highlighted section of code grabs the pointer to our AddressOfNames table, and initializes the index we’ll be using to search that table to the number of entries in it; later sections of the code will then be decrementing that counter with each iteration until it reaches zero, effectively going through each name in the AddressOfNames table in reverse order. This first section of the code then grabs the RVA of the name’s buffer, and adds it to the VA of the DLL’s image to get the VA of the name buffer which will be processed in the next code section.
@@ -164,7 +167,7 @@ Coming back to the purple section of the code concerned with API hashing, we can
 
 For the first method, we can essentially set a breakpoint right after the name is resolved and see which function it was looking for. Doing so on our previous code sample, we can see that the first hash for instance corresponds to the CreateThread() API function (Figure 7).
 
-[fig-7](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image7.png)
+![fig-7](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image7.png)
 _Figure 7: Examining the resolved function VA in a debugger by means of a breakpoint_
 
 For the second method, we can either compute our own rainbow tables using FLARE’s [shellcode_hashes](https://github.com/mandiant/flare-ida/tree/master/shellcode_hashes) for instance, or rely on the extensive OALabs’ [HashDB](https://hashdb.openanalysis.net) rainbow table which already includes many hashes for many malware families.
