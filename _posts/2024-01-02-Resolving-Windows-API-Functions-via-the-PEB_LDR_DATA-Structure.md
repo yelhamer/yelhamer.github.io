@@ -58,7 +58,7 @@ This means that when resolving the offsets for fields in the PEB\_LDR\_TABLE\_EN
 
 With the linked list mechanisms out of the way, we can focus more on the other fields that are useful for our case. Aldeid’s definition of this struct is the following:
 
-```C
+```c
 typedef struct _LDR_DATA_TABLE_ENTRY
 {
     LIST_ENTRY InLoadOrderLinks; /* 0x00 */
@@ -103,7 +103,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 
 The most important fields for us are the DllBase (offset 0x18) and DllBaseName (offset 0x2c). The first field is a pointer to the start of the module’s in-memory image, while the second field is a UNICODE_STRING structure (offset 0x2c) which contains the following fields (per MSDN):
 
-```C
+```c
 typedef struct _UNICODE_STRING {
   USHORT Length;
   USHORT MaximumLength; /* Allocated memory for the Buffer member */
