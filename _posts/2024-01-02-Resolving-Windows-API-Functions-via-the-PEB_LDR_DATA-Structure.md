@@ -39,7 +39,7 @@ _Figure 1: Contents of the TEB structs per Aldeid_
 
 As a consequence, in order to access the PEB all we’d need to do is to read the DWORD at a 0x30 bytes offset from the FS segment register, and we would have the base pointer for the PEB struct. Keep in mind however that this is relevant for 32-bit systems only; on 64-bit the PEB reference is at a 0x60 bytes offset from the GS register instead.
 
-According to Aldeid, the PEB is composed of 66 fields that contain varying information about the process such as: a pointer to the heap, a pointer to KernelCallbackTable (suggested read: how lazarus used KernelCallbackTable poisoning for control flow hijacking), and most importantly in our case a pointer to the PEB\_LDR\_DATA struct which has information about the process’s loaded modules.
+According to Aldeid, the PEB is composed of 66 fields that contain varying information about the process such as: a pointer to the heap, a pointer to KernelCallbackTable (suggested read: [how lazarus used KernelCallbackTable poisoning for control flow hijacking](https://www.malwarebytes.com/blog/threat-intelligence/2022/01/north-koreas-lazarus-apt-leverages-windows-update-client-github-in-latest-campaign)), and most importantly in our case a pointer to the PEB\_LDR\_DATA struct which has information about the process’s loaded modules.
 
 ## Process-loaded modules (PEB\_LDR\_DATA):
 
