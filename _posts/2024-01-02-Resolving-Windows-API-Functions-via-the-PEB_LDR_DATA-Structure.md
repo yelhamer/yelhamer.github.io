@@ -47,7 +47,7 @@ This struct can be obtained by dereferencing the DWORD at the offset 0xc of the 
 
 The forward and backward pointers affiliated with each of the 3 lists are grouped together into a small struct named LIST\_ENTRY, and are placed together at the start of each PEB\_LDR\_TABLE\_ENTRY. Given a certain module, we can use the appropriate LIST\_ENTRY to find the next and previous modules following any of the aforementioned orders.
 
-One nuance that’s worth mentioning is the pointers associated with each list do not necessarily point at the start of the PEB\_LDR\_TABLE\_ENTRY structure. Instead, they point to the relevant LIST\_ENTRY within that structure. For instance, the Flink member of the InMemoryOrderLinks LIST\_ENTRY struct points 0x8 bytes into the next PEB\_LDR\_TABLE\_ENTRY rather than at the start of it. For illustration of this, please refer to Figure 2.
+One nuance that’s worth mentioning is the pointers associated with each list do not necessarily point at the start of the PEB\_LDR\_TABLE\_ENTRY structure. Instead, they point to the relevant LIST\_ENTRY within that structure. For instance, the Flink member of the InMemoryOrderLinks LIST\_ENTRY struct points 0x8 bytes into the next PEB\_LDR\_TABLE\_ENTRY rather than at the start of it. For illustration of this, please refer to Figure 2 which assumes that modules n preceeds n+1 in all orders (to make things easier to explain).
 
 ![fig-2](https://raw.githubusercontent.com/yelhamer/yelhamer.github.io/main/assets/posts/imgs/image2.png)
 _Figure 2: Illustrative diagram of how the loaded-modules linked list works_
