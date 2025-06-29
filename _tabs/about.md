@@ -4,7 +4,7 @@ icon: fas fa-info-circle
 order: 4
 ---
 
-Hello, I am Yacine Elhamer.
+Hello, I am Yacine.
 
 I am a Cyber Security student and enthusiast, and this is my personal blog wherein you can see what I have been up to recently.
 
@@ -12,6 +12,6 @@ Online Profiles:
 
 - [Github](https://github.com/yelhamer)
 
-- [HackTheBox](https://app.hackthebox.com/profile/21208)
+- [HackTheBox](https://app.hackthebox.com/users/21208)
 
 - [Root-Me](https://root-me.org/yelhamer)
