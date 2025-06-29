@@ -30,7 +30,7 @@ In the following sections, we’ll be going over the main tenets of these steps.
 
 Each process on Windows has a dedicated PEB struct that contains key information for that process. Furthermore, each thread on that process also has a dedicated struct called the Thread Environment Block (TEB) that contains key information for that thread. Locating these structs is crucial to executing our approach since they contain the information we need.
 
-Both the PEB and the TEB were meant for internal use only by the operating system, and are therefore not well documented by Microsoft. However, researchers have been able to find the significance of obscure fields using several methods, such as parsing publicly available debug information. Examples of such efforts include [Aldeid’s](https://www.aldeid.com/wiki/PEB-Process-Environment-Block) security wiki, the [Vergilius](https://www.vergiliusproject.com/kernels/x86/Windows%207/SP1/_PEB) project, and [bytepointer](https://bytepointer.com/resources/tebpeb32.htm).
+Both the PEB and the TEB were meant for internal use only by the operating system, and are therefore not well documented by Microsoft. However, researchers have been able to find the significance of obscure fields using several methods, such as parsing publicly available debug information. Examples of such efforts include [Aldeid’s](https://www.aldeid.com/wiki/PEB-Process-Environment-Block) security wiki and [bytepointer](https://bytepointer.com/resources/tebpeb32.htm).
 
 Examining the contents of the TEB struct as per these websites, we can see that it contains a pointer to the parent process’s PEB block. Furthermore, Aldeid also tells us that the TEB is accessible using the FS segment register. See Figure 1 below.
 
